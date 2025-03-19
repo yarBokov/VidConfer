@@ -1,0 +1,17 @@
+﻿@using ConferApp.Client.Pages
+@using ConferApp.Client.Pages.Admin
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Radzen.Blazor
+@inherits LayoutComponentBase
+
+<Header/>
+<div class="bg-info-subtle" style="height:90vh">
+    <FluentGrid Justify="JustifyContent.Center" Class="p-5">
+        @Body
+    </FluentGrid>
+
+@*      <RadzenDataGrid>
+
+     </RadzenDataGrid> *@
+</div>
+<Footer/>

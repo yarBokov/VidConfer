@@ -1,0 +1,37 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+
+@* <RadzenHeader>
+    <RadzenLabel Style=""/>
+    <RadzenBar
+</RadzenHeader> *@
+
+@using Icons = Microsoft.FluentUI.AspNetCore.Components.Icons
+
+<FluentAppBar Style="height: 100%;" Orientation="Orientation.Horizontal"
+    Class="bg-primary-subtle">
+    <FluentLabel Typo="Typography.Header" Class="p-2 fw-bold fs-3 text-info"
+        Style="font-family:'Bell MT'"> ConferApp </FluentLabel>
+
+    <br />
+    <FluentAppBarItem Href="#" Match="NavLinkMatch.All" IconRest="IconLogin()"
+        IconActive="IconLogin(isActive: true)" Text="Вход" OnClick="OnLoginClick" />
+
+    <FluentAppBarItem Href="/register" Match="NavLinkMatch.All" IconRest="IconRegister()"
+        IconActive="IconRegister(isActive: true)" Text="Зарегистрироваться" OnClick="OnRegisterClick" />
+</FluentAppBar>
+
+@code{
+    private static Icon IconLogin(bool isActive = false) =>
+            isActive ? new Icons.Filled.Size24.PersonAccounts()
+                : new Icons.Regular.Size24.PersonAccounts();
+
+    private static Icon IconRegister(bool isActive = false) =>
+        isActive ? new Icons.Filled.Size24.PersonAccounts()
+            : new Icons.Regular.Size24.PersonAccounts();
+
+    private void OnLoginClick(IAppBarItem item) =>
+        NavManager.NavigateTo("/login");
+
+    private void OnRegisterClick(IAppBarItem item) =>
+        NavManager.NavigateTo("/register");
+}
