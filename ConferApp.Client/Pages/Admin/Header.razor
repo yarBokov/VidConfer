@@ -30,8 +30,8 @@
             : new Icons.Regular.Size24.PersonAccounts();
 
     private void OnLoginClick(IAppBarItem item) =>
-        NavManager.NavigateTo("/login");
+        NavManager.NavigateTo(NavManagerConfig.LoginUrl);
 
     private void OnRegisterClick(IAppBarItem item) =>
-        NavManager.NavigateTo("/register");
+        NavManager.NavigateTo(NavManagerConfig.RegistrationUrl);
 }

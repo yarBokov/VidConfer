@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\Admin\Auth\" />
+    <Folder Include="Components\" />
   </ItemGroup>
 
 </Project>

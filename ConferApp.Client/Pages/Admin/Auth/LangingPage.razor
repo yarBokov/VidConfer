@@ -1,0 +1,82 @@
+﻿@page "/"
+@using ConferApp.Shared.Authentication.Requests
+@using ConferApp.Shared.Authentication.Responses
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NotificationService RadzenNotificationService
+@inject DialogService RadzenDialogService
+
+@if (ShowLoad)
+{
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark" 
+        Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+
+@code{
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private bool ShowLoad = false;
+    private bool ShowMessageDialog = false;
+
+    private LoginUserRequest LoginRequest = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ShowLoad = false;
+            bool isAuthenticated = (await AuthenticationState!).User.Identity!.IsAuthenticated;
+            if (isAuthenticated)
+                NavManager.NavigateTo(NavManagerConfig.DashboardUrl);
+        }
+        catch (Exception ex)
+        {
+            ShowNotification(new NotificationMessage
+            { 
+                Severity = NotificationSeverity.Error,
+                Summary = "ПРОИЗОШЛО ИСКЛЮЧЕНИЕ",
+                Detail = "Во время проверки статуса аутентификации произошла ошибка!", 
+                Duration = 5000
+            });
+        }
+    }
+
+    private async Task OnLogin()
+    {
+        ShowLoad = true;
+        await Task.Delay(1000);
+
+        LoginUserResponse? response = await AuthService.Login(LoginRequest);
+        if (!response!.Success)
+        {
+            string token = response!.AccessToken;
+            await AuthStateProvider.SetUserAuthenticated(token);
+            NavManager.NavigateTo(NavManagerConfig.DashboardUrl);
+            return;
+        }
+
+        ShowLoad = false;
+        ShowMessageDialog = true;
+        await RadzenDialogService.OpenAsync("Произошла проблема с аутентификацией!", ds =>
+            @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
+                <RadzenText TextStyle="TextStyle.Body1"><b>@(response!.Message!)</b></RadzenText>
+                <RadzenButton Text="Ok" Click="(() => DialogOk(ds))" ButtonStyle="ButtonStyle.Warning" />
+            </RadzenCard>, new DialogOptions { ShowClose=false, CloseDialogOnOverlayClick=true, CloseDialogOnEsc=true });
+        StateHasChanged();
+    }
+
+    private void DialogOk(DialogService ds)
+    {
+        ShowMessageDialog = false;
+        ds.Close();
+        StateHasChanged();
+    }
+
+    private void ShowNotification(NotificationMessage message)
+    {
+        RadzenNotificationService.Notify(message);
+
+        //TODO (maybe?): add message to database of errors occured
+    }
+}
