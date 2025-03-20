@@ -1,0 +1,88 @@
+﻿@page "/registration"
+@using ConferApp.Shared.Authentication.Requests
+@using ConferApp.Shared.Authentication.Responses
+
+@inject DialogService RadzenDialogService
+
+<RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Регистрация</RadzenText>
+
+@if (ShowLoad)
+{
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark" 
+        Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+
+<EditForm Model="RegisterRequest" OnValidSubmit="OnRegister">
+    <DataAnnotationsValidator />
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card" style="width: 500px">
+            <div class="card-header">
+                <h2>Регистрация</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Введите имя пользователя</label>
+                    <RadzenTextArea @bind-Value="RegisterRequest.Name" Placeholder="Введите имя(не обязательное поле)" />
+                    <ValidationMessage For="() => RegisterRequest.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Введите Email</label>
+                    <RadzenTextArea @bind-Value="RegisterRequest.Email" Placeholder="Введите адрес электронной почты" />
+                    <ValidationMessage For="() => RegisterRequest.Email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <RadzenPassword @bind-Value="RegisterRequest.Password" class="form-control" Placeholder="Введите пароль" AutoComplete="false" />
+                    <ValidationMessage For="() => RegisterRequest.Password" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Повторите пароль</label>
+                    <RadzenPassword @bind-Value="RegisterRequest.PasswordConfirmation" class="form-control" Placeholder="Введите пароль" AutoComplete="false" />
+                    <ValidationMessage For="() => RegisterRequest.PasswordConfirmation" />
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-success btn-sm">Создать пользователя</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code{
+
+    private bool ShowLoad = false;
+    private bool ShowMessageDialog = false;
+    private CreateUserRequest RegisterRequest = new();
+
+    private async Task OnRegister()
+    {
+        ShowLoad = true;
+        await Task.Delay(1000);
+
+        CreateUserResponse? response = await AuthService.RegisterUser(RegisterRequest);
+        if (response!.Success)
+        {
+            NavManager.NavigateTo("/");
+            return;
+        }
+
+        ShowLoad = false;
+        ShowMessageDialog = true;
+        await RadzenDialogService.OpenAsync("Произошла проблема во время регистрации!", ds =>
+            @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
+                <RadzenText TextStyle="TextStyle.Body1"><b>@(response!.Message!)</b></RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenButton Text="Попробовать снова" Click="() => DialogOk(ds)" ButtonStyle="ButtonStyle.Warning" />
+                </RadzenStack>
+            </RadzenCard>
+            , new DialogOptions { ShowClose = false, CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
+        StateHasChanged();
+    }
+
+    private void DialogOk(DialogService ds)
+    {
+        ShowMessageDialog = false;
+        ds.Close();
+        StateHasChanged();
+    }
+}

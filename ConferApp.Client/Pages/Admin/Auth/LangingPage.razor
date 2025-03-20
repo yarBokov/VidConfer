@@ -1,4 +1,6 @@
 ﻿@page "/"
+@page "/login"
+
 @using ConferApp.Shared.Authentication.Requests
 @using ConferApp.Shared.Authentication.Responses
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,6 +13,32 @@
     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark" 
         Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
 }
+
+<EditForm Model="LoginRequest" OnValidSubmit="OnLogin">
+    <DataAnnotationsValidator />
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card" style="width: 500px">
+            <div class="card-header">
+                <h2>Вход</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Введите Email</label>
+                    <RadzenTextArea @bind-Value="LoginRequest.Email" Placeholder="Введите адрес электронной почты" />
+                    <ValidationMessage For="() => LoginRequest.Email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Введите Пароль</label>
+                    <RadzenPassword @bind-Value="LoginRequest.Password" class="form-control" Placeholder="Введите пароль" AutoComplete="false" />
+                    <ValidationMessage For="() => LoginRequest.Password" />
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-success btn-sm">Войти</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
 
 @code{
     [CascadingParameter]
@@ -61,16 +89,22 @@
         await RadzenDialogService.OpenAsync("Произошла проблема с аутентификацией!", ds =>
             @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
                 <RadzenText TextStyle="TextStyle.Body1"><b>@(response!.Message!)</b></RadzenText>
-                <RadzenButton Text="Ok" Click="(() => DialogOk(ds))" ButtonStyle="ButtonStyle.Warning" />
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenButton Text="Попробовать снова" Click="() => DialogOk(ds, navigateToRegistration: false)" ButtonStyle="ButtonStyle.Warning" />
+                    <RadzenButton Text="Зарегистрироваться" Click="() => DialogOk(ds, navigateToRegistration: true)" ButtonStyle="ButtonStyle.Info" />
+                </RadzenStack>
             </RadzenCard>, new DialogOptions { ShowClose=false, CloseDialogOnOverlayClick=true, CloseDialogOnEsc=true });
-        StateHasChanged();
+        //StateHasChanged();
     }
 
-    private void DialogOk(DialogService ds)
+    private void DialogOk(DialogService ds, bool navigateToRegistration)
     {
         ShowMessageDialog = false;
         ds.Close();
-        StateHasChanged();
+        if (navigateToRegistration)
+            NavManager.NavigateTo(NavManagerConfig.RegistrationUrl);
+        else
+            StateHasChanged();
     }
 
     private void ShowNotification(NotificationMessage message)
