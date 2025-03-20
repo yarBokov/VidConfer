@@ -1,0 +1,17 @@
+﻿@page "/logout"
+
+@if (ShowLoad)
+{
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark"
+        Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+@code{
+    private bool ShowLoad = false;
+    protected override async Task OnInitializedAsync()
+    {
+        ShowLoad = true;
+        await Task.Delay(500);
+        await AuthStateProvider.SetUserLoggedOut();
+        NavManager.NavigateTo("/");
+    }
+}

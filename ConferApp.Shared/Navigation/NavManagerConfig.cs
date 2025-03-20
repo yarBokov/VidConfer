@@ -8,8 +8,9 @@ namespace ConferApp.Shared.Navigation
 {
     public static class NavManagerConfig
     {
-        public static string LoginUrl = "/login";
-        public static string RegistrationUrl = "/registration";
-        public static string DashboardUrl = "/dashboard";
+        public const string LoginUrl = "/login";
+        public const string LogoutUrl = "/logout";
+        public const string RegistrationUrl = "/registration";
+        public const string DashboardUrl = "/dashboard";
     }
 }

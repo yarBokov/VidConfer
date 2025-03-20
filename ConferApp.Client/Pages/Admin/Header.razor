@@ -1,37 +1,16 @@
-﻿@using Microsoft.FluentUI.AspNetCore.Components
+﻿<RadzenHeader Style="height: 100%; background-color: var(--rz-primary-subtle);">
+    <RadzenRow AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
+        <RadzenColumn>
+            <RadzenLabel Style="padding: 0.5rem; font-weight: bold; font-size: 1.5rem; color: var(--rz-info); font-family: 'Bell MT';">ConferApp</RadzenLabel>
+        </RadzenColumn>
+    </RadzenRow>
 
-@* <RadzenHeader>
-    <RadzenLabel Style=""/>
-    <RadzenBar
-</RadzenHeader> *@
-
-@using Icons = Microsoft.FluentUI.AspNetCore.Components.Icons
-
-<FluentAppBar Style="height: 100%;" Orientation="Orientation.Horizontal"
-    Class="bg-primary-subtle">
-    <FluentLabel Typo="Typography.Header" Class="p-2 fw-bold fs-3 text-info"
-        Style="font-family:'Bell MT'"> ConferApp </FluentLabel>
-
-    <br />
-    <FluentAppBarItem Href="#" Match="NavLinkMatch.All" IconRest="IconLogin()"
-        IconActive="IconLogin(isActive: true)" Text="Вход" OnClick="OnLoginClick" />
-
-    <FluentAppBarItem Href="/register" Match="NavLinkMatch.All" IconRest="IconRegister()"
-        IconActive="IconRegister(isActive: true)" Text="Зарегистрироваться" OnClick="OnRegisterClick" />
-</FluentAppBar>
-
-@code{
-    private static Icon IconLogin(bool isActive = false) =>
-            isActive ? new Icons.Filled.Size24.PersonAccounts()
-                : new Icons.Regular.Size24.PersonAccounts();
-
-    private static Icon IconRegister(bool isActive = false) =>
-        isActive ? new Icons.Filled.Size24.PersonAccounts()
-            : new Icons.Regular.Size24.PersonAccounts();
-
-    private void OnLoginClick(IAppBarItem item) =>
-        NavManager.NavigateTo(NavManagerConfig.LoginUrl);
-
-    private void OnRegisterClick(IAppBarItem item) =>
-        NavManager.NavigateTo(NavManagerConfig.RegistrationUrl);
-}
+    <RadzenRow AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+        <RadzenColumn>
+            <RadzenButton Icon="account_circle" Text="Вход" Click="@(() => NavManager.NavigateTo("/"))" />
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenButton Icon="person_add" Text="Зарегистрироваться" Click="@(() => NavManager.NavigateTo("/registration"))" />
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenHeader>
