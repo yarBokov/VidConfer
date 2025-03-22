@@ -1,0 +1,88 @@
+﻿@page "/dashboard"
+@using ConferApp.Client.States
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@implements IDisposable
+
+@code {
+    [Inject]
+    private NavigationState? NavState { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private bool IsMeetingModalOpen = false;
+
+    private string ModalMessage = string.Empty;
+    private string RecentMeetingStatus = string.Empty;
+    private string MeetingStatus = string.Empty;
+
+    private bool IsModalMessageOpen = false;
+    private bool ShowLoading = false;
+    private MeetingModel Meeting = new();
+
+    private IEnumerable<GetMeeting> Meetings = [];
+    private IEnumerable<GetMeeting> RecentMeetings = [];
+
+    private string HostId = string.Empty;
+
+    private class MeetingModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateOnly? StartDate { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateOnly? EndDate { get; set; }
+        public DateTime? EndTime { get; set; }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (!(await AuthState!).User.Identity!.IsAuthenticated)
+            NavManager.NavigateTo("/");
+
+        NavState!.BtnAction += ScheduleMeeting;
+        ShowLoading = true;
+        await Task.Delay(500);
+
+        HostId = (await AuthState!).User.Claims
+            .FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)!.Value;
+
+        if (string.IsNullOrEmpty(HostId))
+            return;
+
+        await GetMeetingsAsync();
+        await GetRecentMeetingsAsync();
+        ShowLoading = false;
+    }
+
+    private async Task GetMeetingsAsync()
+    {
+        GetMeetingsResponse? meetingsResponse = await MeetingService.GetMeetingsAsync(HostId);
+        if (meetingsResponse!.Success)
+            Meetings = meetingsResponse.Data;
+        else
+            MeetingStatus = meetingsResponse.Message!;
+    }
+
+    private async Task GetRecentMeetingsAsync()
+    {
+        GetRecentMeetingsResponse? meetingsResponse = await MeetingService.GetRecentMeetingsAsync(HostId);
+        if (meetingsResponse!.Success)
+            RecentMeetings = meetingsResponse.Data;
+        else
+            RecentMeetingStatus = meetingsResponse.Message!;
+    }
+
+    private void Ok()
+    {
+        IsModalMessageOpen = false;
+        StateHasChanged();
+    }
+
+    public void Dispose() => NavState!.BtnAction -= StateHasChanged;
+
+    private void ScheduleMeeting() => OpenModal();
+    private void OpenModal() => IsMeetingModalOpen = true;
+}

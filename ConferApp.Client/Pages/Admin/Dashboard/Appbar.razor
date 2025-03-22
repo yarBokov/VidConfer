@@ -1,0 +1,19 @@
+﻿@using ConferApp.Client.States
+<RadzenSidebar @bind-Expanded=SideBarExpanded>
+    <RadzenPanelMenuItem>
+        <RadzenPanelMenuItem Text="Домашняя страница" Click=@(() => NavManager.NavigateTo("/")) Icon="home" Match="NavLinkMatch.All" />
+        <RadzenPanelMenuItem Text="Запланировать видеоконференцию" Click=ToScheduleMeetingAsync Icon="date_range" Match="NavLinkMatch.All" />
+        <hr />
+        <RadzenPanelMenuItem Text="Выход" Click=@(() => NavManager.NavigateTo(NavManagerConfig.LogoutUrl)) Icon="exit_to_app" />
+    </RadzenPanelMenuItem>
+</RadzenSidebar>
+
+@code {
+    private bool SideBarExpanded = false;
+
+    [Inject]
+    private NavigationState? NavState { get; set; }
+
+    private async Task ToScheduleMeetingAsync() =>
+        NavState!.BtnClicked();
+}
