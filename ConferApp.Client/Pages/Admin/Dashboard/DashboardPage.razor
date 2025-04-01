@@ -1,10 +1,19 @@
 ﻿@page "/dashboard"
 @using ConferApp.Client.States
+@using ConferApp.Shared.Meetings.Requests
 @using ConferApp.Shared.Meetings.Responses
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
 @implements IDisposable
+
+@inject DialogService RadzenDialogService
+
+@if (ShowLoading)
+{
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark"
+            Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
 
 @code {
     [Inject]
@@ -15,12 +24,12 @@
 
     private bool IsMeetingModalOpen = false;
 
-    private string ModalMessage = string.Empty;
     private string RecentMeetingStatus = string.Empty;
     private string MeetingStatus = string.Empty;
 
-    private bool IsModalMessageOpen = false;
+    private bool ShowMessageDialog = false;
     private bool ShowLoading = false;
+
     private MeetingModel Meeting = new();
 
     private IEnumerable<GetMeeting> Meetings = [];
@@ -62,7 +71,7 @@
     {
         GetMeetingsResponse? meetingsResponse = await MeetingService.GetMeetingsAsync(HostId);
         if (meetingsResponse!.Success)
-            Meetings = meetingsResponse.Data;
+            Meetings = meetingsResponse.Data!;
         else
             MeetingStatus = meetingsResponse.Message!;
     }
@@ -71,15 +80,75 @@
     {
         GetRecentMeetingsResponse? meetingsResponse = await MeetingService.GetRecentMeetingsAsync(HostId);
         if (meetingsResponse!.Success)
-            RecentMeetings = meetingsResponse.Data;
+            RecentMeetings = meetingsResponse.Data!;
         else
             RecentMeetingStatus = meetingsResponse.Message!;
     }
 
+    private async Task SubmitMeeting()
+    {
+        IsMeetingModalOpen = false;
+        ShowLoading = true;
+        await Task.Delay(1000);
+        CreateMeetingRequest meetingRequest = new()
+        {
+            Title = Meeting.Title,
+            Description = Meeting.Description,
+            StartDate = DateOnly.FromDateTime(Meeting.StartDate!.Value).ToString(),
+            StartTime = TimeOnly.FromDateTime(Meeting.StartTime!.Value).ToString(),
+            EndDate = DateOnly.FromDateTime(Meeting.EndDate!.Value).ToString(),
+            EndTime = TimeOnly.FromDateTime(Meeting.EndTime!.Value).ToString(),
+            HostId = (await AuthState!).User.Claims
+                .FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)!.Value)
+        };
+
+        CreateMeetingResponse? meetingResponse = await MeetingService.CreateMeetingAsync(meetingRequest);
+
+        if (meetingResponse!.Success)
+        {
+            Meeting = new();
+            meetingRequest = new();
+            await GetMeetingsAsync();
+        }
+
+        ShowLoading = false;
+        ShowMessageDialog = true;
+        await RadzenDialogService.OpenAsync("Произошла проблема во время создания видеовстречи!", ds =>
+            @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(meetingResponse!.Message!)</b></RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Попробовать снова" Click="() => DialogOk(ds)" ButtonStyle="ButtonStyle.Warning" />
+                    </RadzenStack>
+            </RadzenCard>
+        );
+    }
+
+    private void DialogOk(DialogService ds)
+    {
+        ShowMessageDialog = false;
+        ds.Close();
+        StateHasChanged();
+    }
+
     private void Ok()
     {
-        IsModalMessageOpen = false;
+        ShowMessageDialog = false;
         StateHasChanged();
+    }
+
+    private void CancelMeetingCreation()
+    {
+        IsMeetingModalOpen = false;
+        Meeting = new();
+    }
+
+    private void ResetMeetingForm() => Meeting = new();
+
+    private async Task StartMeeting(string meetingId)
+    {
+        ShowLoading = true;
+        await Task.Delay(500);
+        NavManager.NavigateTo(string.Format(NavManagerConfig.MeetingUrlFormat, meetingId));
     }
 
     public void Dispose() => NavState!.BtnAction -= StateHasChanged;
