@@ -45,7 +45,6 @@
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     private bool ShowLoad = false;
-    private bool ShowMessageDialog = false;
 
     private LoginUserRequest LoginRequest = new();
 
@@ -85,7 +84,6 @@
         }
 
         ShowLoad = false;
-        ShowMessageDialog = true;
         await RadzenDialogService.OpenAsync("Произошла проблема с аутентификацией!", ds =>
             @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
                 <RadzenText TextStyle="TextStyle.Body1"><b>@(response!.Message!)</b></RadzenText>
@@ -99,7 +97,6 @@
 
     private void DialogOk(DialogService ds, bool navigateToRegistration)
     {
-        ShowMessageDialog = false;
         ds.Close();
         if (navigateToRegistration)
             NavManager.NavigateTo(NavManagerConfig.RegistrationUrl);

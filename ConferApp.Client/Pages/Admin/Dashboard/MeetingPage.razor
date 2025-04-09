@@ -1,9 +1,22 @@
 ﻿@page "/meeting/{MeetingId}"
+
+@using ConferApp.Shared.Meetings.Responses
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@layout DashboardLayout
+@attribute [Authorize]
+
+<div class="row" style="opacity:@PageOpacity">
+    <div class="co-lg-12 card border-0">
+        <div class="card body video-conference-container" id="@ContainerId"></div>
+    </div> 
+</div>
 
 @code{
     private int PageOpacity = 0;
     private bool ShowLoader = false;
+    private bool IsMeetingModalOpen = false;
     private string Message = string.Empty;
     private string ContainerId = "host-video-container";
 
@@ -15,8 +28,32 @@
 
     protected override void OnParametersSet()
     {
-        base.OnParametersSet();
-        if (string.IsNullOrEmpty(ConfigurationBinder.))
+        if (string.IsNullOrEmpty(MeetingId))
             NavManager.NavigateTo(NavManagerConfig.DashboardUrl)); 
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ShowLoader = true;
+
+        var user = (await AuthState!).User;
+        string name = user.Claims.FirstOrDefault(_ => _.Type == ClaimTypes.Name)!.Value;
+
+        TwilioServiceResponse? response = await TwilioService.GenerateMeetingToken(name, MeetingId)!;
+        if (!response!.Success)
+        {
+            Message = response.Message;
+            ShowLoader = true;
+        }
+
+        //start meeting
+        await TwilioService.JoinMeeting(token: response.Data!, roomName: MeetingId, containerId: ContainerId);
+        ShowLoader = false;
+        PageOpacity = 1;
+    }
+
+    void DialogOk()
+    {
+        StateHasChanged();
     }
 }
