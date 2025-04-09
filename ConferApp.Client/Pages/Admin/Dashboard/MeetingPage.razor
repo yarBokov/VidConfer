@@ -1,0 +1,22 @@
+﻿@page "/meeting/{MeetingId}"
+@using Microsoft.AspNetCore.Components.Authorization
+
+@code{
+    private int PageOpacity = 0;
+    private bool ShowLoader = false;
+    private string Message = string.Empty;
+    private string ContainerId = "host-video-container";
+
+    [Parameter]
+    public string MeetingId { get; set; } = string.Empty;
+
+    [CascadingParameter]
+    Task<AuthenticationState?> AuthState { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (string.IsNullOrEmpty(ConfigurationBinder.))
+            NavManager.NavigateTo(NavManagerConfig.DashboardUrl)); 
+    }
+}

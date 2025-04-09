@@ -2,10 +2,15 @@
 @using ConferApp.Client.States
 @using ConferApp.Shared.Meetings.Requests
 @using ConferApp.Shared.Meetings.Responses
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
+@attribute [Authorize]
+
 @implements IDisposable
+@layout DashboardLayout
+
 
 @inject DialogService RadzenDialogService
 
@@ -14,6 +19,10 @@
     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Dark"
             Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
 }
+
+@* Доделать таблицу текущих встреч *@
+
+ @* Доделать модальное окно с SubmitMeeting(), вызов по IsMeetingModalOpen = true*@
 
 @code {
     [Inject]
@@ -27,7 +36,6 @@
     private string RecentMeetingStatus = string.Empty;
     private string MeetingStatus = string.Empty;
 
-    private bool ShowMessageDialog = false;
     private bool ShowLoading = false;
 
     private MeetingModel Meeting = new();
@@ -112,7 +120,6 @@
         }
 
         ShowLoading = false;
-        ShowMessageDialog = true;
         await RadzenDialogService.OpenAsync("Произошла проблема во время создания видеовстречи!", ds =>
             @<RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="max-width:360px">
                     <RadzenText TextStyle="TextStyle.Body1"><b>@(meetingResponse!.Message!)</b></RadzenText>
@@ -125,16 +132,11 @@
 
     private void DialogOk(DialogService ds)
     {
-        ShowMessageDialog = false;
         ds.Close();
         StateHasChanged();
     }
 
-    private void Ok()
-    {
-        ShowMessageDialog = false;
-        StateHasChanged();
-    }
+    private void Ok() => StateHasChanged();
 
     private void CancelMeetingCreation()
     {
